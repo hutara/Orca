@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORCA - راهنمای جامع لایوکدینگ موسیقی</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #010f0d;
+            --bg-secondary: #020d0e;
+            --bg-card: #09161a;
+            --accent-cyan: #00ffff;
+            --accent-green: #00ff88;
+            --accent-purple: #f152ff;
+            --accent-pink: #ff0080;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --border: #273d49;
+            --code-bg: #0f2229;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, hsl(305, 91%, 70%) 100%);
+            --gradient-2: linear-gradient(135deg, #00ffff 0%, #00ff88 100%);
+            --gradient-3: linear-gradient(135deg, #ff0080 0%, #ff8c00 100%);
+        }
+
+        body {
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-y: auto; /* تغییر به overflow-y برای اسکرول عمودی */
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Matrix Canvas */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3; /* شفافیت برای خوانایی بهتر */
+        }
+
+        /* Overlay for better readability */
+        .matrix-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, 
+                        rgba(0,0,0,0.3) 0%, 
+                        rgba(0,0,0,0.7) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* اطمینان از اینکه محتوای اصلی بالای canvas قرار بگیره */
+        header, nav, .container, footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--gradient-2);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            padding: 100px 20px 60px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(22, 37, 48, 0.8) 0%, var(--bg-primary) 100%);
+            overflow: hidden;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.8)); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-2);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-cyan);
+            border: 2px solid var(--accent-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            transform: translateY(-3px);
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            background: rgba(1, 17, 32, 0.041);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 999;
+            padding: 15px 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-cyan);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .toc {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-list li {
+            margin-bottom: 10px;
+        }
+
+        .toc-list a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .toc-list a:hover {
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--accent-cyan);
+            transform: translateX(-5px);
+        }
+
+        .toc-list a.active {
+            background: rgba(0, 255, 255, 0.15);
+            color: var(--accent-cyan);
+            border-right: 3px solid var(--accent-cyan);
+        }
+
+        /* Content Sections */
+        .content {
+            flex: 1;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-2);
+            opacity: 0.8;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 30px 0 15px;
+            color: var(--accent-green);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-purple);
+            margin-bottom: 10px;
+        }
+
+        /* Code Blocks */
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .code-header {
+            background: var(--bg-secondary);
+            padding: 10px 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-bottom: none;
+        }
+
+        .code-title {
+            color: var(--accent-green);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .code-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .code-btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 0 0 12px 12px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin-top: 0;
+        }
+
+        .code-container.standalone pre {
+            border-radius: 12px;
+        }
+
+        code {
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+        }
+
+        th {
+            background: var(--bg-primary);
+            color: var(--accent-cyan);
+            padding: 15px;
+            text-align: right;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+
+        /* Lists */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 15px 20px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-right: 4px solid var(--accent-green);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .feature-list li:hover {
+            transform: translateX(-10px);
+            border-color: var(--accent-cyan);
+        }
+
+        .feature-list i {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+        }
+
+        .feature-list :link {
+            color: var(--accent-green);
+            font-size: 1.2rem;
+        }        
+        /* Alert Boxes */
+        .alert {
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .alert-info {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--accent-green);
+        }
+
+        .alert i {
+            font-size: 1.5rem;
+            margin-top: 2px;
+        }
+
+        /* Interactive Elements */
+        .interactive-demo {
+            background: var(--code-bg);
+            border: 2px solid var(--border);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+            gap: 5px;
+            max-width: 500px;
+            margin: 20px auto;
+            font-family: monospace;
+            font-size: 1.2rem;
+        }
+
+        .demo-cell {
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-dim);
+        }
+
+        .demo-cell:hover {
+            background: rgba(0, 255, 255, 0.2);
+            color: var(--accent-cyan);
+            transform: scale(1.1);
+        }
+
+        .demo-cell.active {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            padding: 60px 20px 30px;
+            margin-top: 100px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section li {
+            margin-bottom: 10px;
+        }
+
+        .footer-section a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .section {
+                padding: 25px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .code-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
+        }
+
+                /* Floating Button */
+        .floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .btn-webapp {
+            background: var(--gradient-2);
+            color: var(--bg-primary);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .btn-webapp:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 255, 255, 0.5);
+            background: var(--gradient-1);
+        }
+
+        .btn-webapp i {
+            font-size: 1.2rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .floating-btn {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .btn-webapp {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Background Canvas -->
+    <canvas id="matrix-bg"></canvas>
+    
+    <!-- Optional Overlay -->
+    <div class="matrix-overlay"></div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Header -->
+    <header>
+        <h1 class="hero-title">ORCA</h1>
+        <p class="hero-subtitle">زبان برنامه‌نویسی دوبعدی برای لایوکدینگ موسیقی الکترونیک</p>
+        <div class="hero-buttons">
+            <a href="#install" class="btn btn-primary">
+                <i class="fas fa-download"></i>
+                شروع نصب
+            </a>
+            <a href="https://github.com/hundredrabbits/Orca" target="_blank" class="btn btn-secondary">
+                <i class="fab fa-github"></i>
+                مشاهده در GitHub
+            </a>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span style="color: var(--accent-cyan); font-weight: 700; font-size: 1.5rem;">ORCA</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#install">نصب</a></li>
+                <li><a href="#basics">مبانی</a></li>
+                <li><a href="#operators">عملگرها</a></li>
+                <li><a href="#examples">مثال‌ها</a></li>
+                <li><a href="#resources">منابع</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="grid">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="toc">
+                    <h3 class="toc-title">
+                        <i class="fas fa-list"></i>
+                        فهرست مطالب
+                    </h3>
+                    <ul class="toc-list">
+                        <li><a href="#loopmidi"><i class="fas fa-circle"></i> نصب LoopMIDI</a></li>
+                        <li><a href="#install-orca"><i class="fas fa-circle"></i> نصب Orca</a></li>
+                        <li><a href="#interface"><i class="fas fa-circle"></i> رابط کاربری</a></li>
+                        <li><a href="#operators"><i class="fas fa-circle"></i> عملگرها</a></li>
+                        <li><a href="#midi"><i class="fas fa-circle"></i> تنظیمات MIDI</a></li>
+                        <li><a href="#examples"><i class="fas fa-circle"></i> مثال‌های عملی</a></li>
+                        <li><a href="#advanced"><i class="fas fa-circle"></i> تکنیک‌های پیشرفته</a></li>
+                        <li><a href="#resources"><i class="fas fa-circle"></i> منابع بیشتر</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Content -->
+            <main class="content">
+                <!-- Section: LoopMIDI -->
+                <section id="loopmidi" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-plug"></i>
+                        مرحله ۱: نصب و راه‌اندازی LoopMIDI
+                    </h2>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>LoopMIDI چیست؟</strong><br>
+                            LoopMIDI یک درایور MIDI مجازی رایگان برای ویندوز است که به شما امکان می‌دهد پورت‌های MIDI مجازی ایجاد کنید. این پورت‌ها مانند کابل‌های MIDI مجازی عمل می‌کنند و امکان ارتباط بین نرم‌افزارهای مختلف را فراهم می‌کنند.
+                        </div>
+                    </div>
+
+                    <h3 class="section-subtitle">دانلود LoopMIDI</h3>
+                    <div class="card">
+                        <h4 class="card-title">مشخصات نرم‌افزار</h4>
+                        <ul class="feature-list">
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>سازنده:</strong> Tobias Erichsen<br>
+                                    <span style="color: var(--text-dim);">توسعه‌دهنده معتبر ابزارهای MIDI</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>حجم فایل:</strong> حدود 7.8 مگابایت<br>
+                                    <span style="color: var(--text-dim);">سبک و کم‌حجم</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>سیستم عامل:</strong> Windows XP/Vista/7/8/10/11<br>
+                                    <span style="color: var(--text-dim);">سازگاری کامل با تمام نسخه‌ها</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>قیمت:</strong> رایگان<br>
+                                    <span style="color: var(--text-dim);">بدون محدودیت زمانی یا عملکردی</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="https://www.tobias-erichsen.de/software/loopmidi.html" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-download"></i>
+                            دانلود LoopMIDI
+                        </a>
+                    </div>
+
+                    <h3 class="section-subtitle">راهنمای نصب</h3>
+                    <ol style="list-style: decimal; margin-right: 20px; line-height: 2;">
+                        <li>فایل <code>loopMIDISetup.exe</code> را اجرا کنید</li>
+                        <li>مراحل نصب استاندارد را دنبال کنید</li>
+                        <li>پس از نصب، برنامه را از منوی Start اجرا کنید</li>
+                        <li>روی دکمه <strong>+</strong> کلیک کنید تا یک پورت جدید ایجاد شود</li>
+                        <li>نام پورت را وارد کنید (مثلاً <code>Orca Port</code>)</li>
+                        <li>برنامه را در System Tray باز بگذارید</li>
+                    </ol>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>نکته مهم:</strong> LoopMIDI باید قبل از اجرای Orca و DAW شما در حال اجرا باشد تا پورت‌های مجازی قابل دسترس باشند.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Install Orca -->
+                <section id="install-orca" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-cube"></i>
+                        مرحله ۲: نصب Orca
+                    </h2>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Orca چیست؟</strong><br>
+                            Orca یک زبان برنامه‌نویسی esoteric دوبعدی برای لایوکدینگ موسیقی است. در این محیط، هر کاراکتر یک عملگر است که می‌تواند با کاراکترهای اطراف تعامل داشته باشد.
+                        </div>
+                    </div>
+
+                    <h3 class="section-subtitle">دانلود Orca</h3>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="https://hundredrabbits.itch.io/orca" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-download"></i>
+                            دانلود Orca (Desktop)
+                        </a>
+                        <a href="./Orca/" target="_blank" class="btn btn-secondary">
+                            <i class="fas fa-globe"></i>
+                            نسخه آنلاین
+                        </a>
+                    </div>
+
+                    <h3 class="section-subtitle">نصب و اجرا</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">Windows</span>
+                            <div class="code-actions">
+
+                            </div>
+                        </div>
+                        <pre><code># 1. فایل Orca-win.zip را دانلود کنید
+# 2. فایل را در پوشه دلخواه Extract کنید
+# 3. فایل Orca.exe را اجرا کنید</code></pre>
+                    </div>
+
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">macOS</span>
+                            <div class="code-actions">
+                            </div>
+                        </div>
+                        <pre><code># 1. فایل Orca-mac.app.zip را دانلود کنید
+# 2. فایل را باز کنید
+# 3. Orca.app را به پوشه Applications منتقل کنید
+# 4. برنامه را اجرا کنید</code></pre>
+                    </div>
+
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">Linux</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># با استفاده از npm
+npm install -g orca-c
+
+# یا دانلود مستقیم AppImage
+chmod +x Orca-linux-x64.AppImage
+./Orca-linux-x64.AppImage</code></pre>
+                    </div>
+                </section>
+
+                <!-- Section: Interface -->
+                <section id="interface" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-desktop"></i>
+                        مرحله ۳: آشنایی با رابط کاربری
+                    </h2>
+
+                    <div class="interactive-demo">
+                        <h3 style="color: var(--accent-green); margin-bottom: 20px;">نمونه محیط Orca</h3>
+                        <div class="demo-grid" id="orcaGrid">
+                            <!-- Grid cells will be generated by JavaScript -->
+                        </div>
+                        <p style="text-align: center; color: var(--text-dim); margin-top: 20px;">
+                            روی خانه‌ها کلیک کنید تا عملگرها را قرار دهید
+                        </p>
+                    </div>
+
+                    <h3 class="section-subtitle">کلیدهای میانبر اصلی</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>کلید</th>
+                                    <th>عملکرد</th>
+                                    <th>توضیحات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>Ctrl+N</code></td>
+                                    <td>New</td>
+                                    <td>ایجاد پروژه جدید</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl+O</code></td>
+                                    <td>Open</td>
+                                    <td>باز کردن فایل</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl+S</code></td>
+                                    <td>Save</td>
+                                    <td>ذخیره پروژه</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Space</code></td>
+                                    <td>Play/Pause</td>
+                                    <td>شروع/توقف پخش</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl+K</code></td>
+                                    <td>Console</td>
+                                    <td>باز کردن کنسول</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl+G</code></td>
+                                    <td>Guide</td>
+                                    <td>نمایش راهنما</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl+/</code></td>
+                                    <td>Comment</td>
+                                    <td>کامنت کردن خط</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl+]</code></td>
+                                    <td>Zoom In</td>
+                                    <td>بزرگنمایی</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl+[</code></td>
+                                    <td>Zoom Out</td>
+                                    <td>کوچک‌نمایی</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Section: Operators -->
+                <section id="operators" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-code"></i>
+                        مرحله ۴: عملگرهای اصلی
+                    </h2>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-lightbulb"></i>
+                        <div>
+                            <strong>نکته:</strong> حروف کوچک (lowercase) بر اساس Bang عمل می‌کنند، حروف بزرگ (uppercase) هر فریم اجرا می‌شوند.
+                        </div>
+                    </div>
+
+                    <h3 class="section-subtitle">عملگرهای محاسباتی</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>عملگر</th>
+                                    <th>نام</th>
+                                    <th>عملکرد</th>
+                                    <th>مثال</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>A</code></td>
+                                    <td>Add</td>
+                                    <td>جمع دو عدد</td>
+                                    <td><code>23A → 5</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>B</code></td>
+                                    <td>Subtract</td>
+                                    <td>تفریق دو عدد</td>
+                                    <td><code>52B → 3</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>M</code></td>
+                                    <td>Multiply</td>
+                                    <td>ضرب دو عدد</td>
+                                    <td><code>34M → C</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>C</code></td>
+                                    <td>Clock</td>
+                                    <td>ساعت با نرخ و مدولو</td>
+                                    <td><code>8C4 → 0,1,2,3</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>D</code></td>
+                                    <td>Delay</td>
+                                    <td>ارسال Bang با تاخیر</td>
+                                    <td><code>D8 → * هر 8 فریم</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>R</code></td>
+                                    <td>Random</td>
+                                    <td>عدد تصادفی</td>
+                                    <td><code>19R → 1-9 تصادفی</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="section-subtitle">عملگرهای حرکتی</h3>
+                    <div class="code-container standalone">
+                        <pre><code># E - حرکت به شرق
+E → E → E → E
+
+# W - حرکت به غرب  
+W ← W ← W ← W
+
+# N - حرکت به شمال
+N
+↑
+N
+
+# S - حرکت به جنوب
+S
+↓
+S</code></pre>
+                    </div>
+
+                    <h3 class="section-subtitle">عملگرهای MIDI</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">ارسال نت MIDI</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># ساختار: :channel octave note velocity
+:03C  # کانال 0، اکتاو 3، نت C
+:14Ef # کانال 1، اکتاو 4، نت E با velocity f (15)
+
+# مثال کامل با Clock
+D8...
+.:03C  # هر 8 فریم نت C را پخش کن</code></pre>
+                    </div>
+                </section>
+
+                <!-- Section: MIDI Setup -->
+                <section id="midi" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-music"></i>
+                        مرحله ۵: تنظیمات MIDI
+                    </h2>
+
+                    <h3 class="section-subtitle">اتصال Orca به DAW</h3>
+                    
+                    <div class="card">
+                        <h4 class="card-title">1. تنظیمات در Orca</h4>
+                        <ol style="list-style: decimal; margin-right: 20px;">
+                            <li>Orca را اجرا کنید</li>
+                            <li><code>Ctrl+K</code> را فشار دهید تا کنسول باز شود</li>
+                            <li>دستور زیر را تایپ کنید:</li>
+                        </ol>
+                        <div class="code-container standalone">
+                            <pre><code>midi:list  # لیست پورت‌های موجود
+midi:0     # انتخاب پورت اول (LoopMIDI Port)</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h4 class="card-title">2. تنظیمات در Ableton Live</h4>
+                        <ol style="list-style: decimal; margin-right: 20px;">
+                            <li>به <strong>Options → Preferences → MIDI</strong> بروید</li>
+                            <li>در بخش <strong>Input</strong>، پورت LoopMIDI را فعال کنید:</li>
+                            <li>Track و Remote را روی <strong>On</strong> قرار دهید</li>
+                            <li>یک MIDI Track جدید بسازید</li>
+                            <li>در قسمت MIDI From، پورت LoopMIDI را انتخاب کنید</li>
+                        </ol>
+                    </div>
+
+                    <div class="card">
+                        <h4 class="card-title">3. تنظیمات در FL Studio</h4>
+                        <ol style="list-style: decimal; margin-right: 20px;">
+                            <li>به <strong>Options → MIDI Settings</strong> بروید</li>
+                            <li>پورت LoopMIDI را در لیست پیدا کنید</li>
+                            <li>آن را <strong>Enable</strong> کنید</li>
+                            <li>Port number را یادداشت کنید</li>
+                            <li>در Channel Rack، یک ساز اضافه کنید</li>
+                            <li>MIDI Channel آن را با پورت تنظیم کنید</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <!-- Section: Examples -->
+                <section id="examples" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-play-circle"></i>
+                        مرحله ۶: مثال‌های عملی
+                    </h2>
+
+                    <h3 class="section-subtitle">مثال ۱: ملودی ساده</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">simple_melody.orca</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># ملودی 4 نتی با تکرار
+.8C4.....    # شمارنده 0-3 با سرعت 1/8
+D804TCAFE    # Track با 4 نت: C, A, F, E
+.:03C....    # خروجی MIDI</code></pre>
+                    </div>
+
+                    <h3 class="section-subtitle">مثال ۲: درام پترن</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">drum_pattern.orca</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># Kick drum هر 4 beat
+D4.....
+.:91C..
+
+# Hi-hat هر 2 beat  
+.D2....
+..:92F.
+
+# Snare در beat 2 و 4
+4C8....
+.2F2...
+..:91D.</code></pre>
+                    </div>
+
+                    <h3 class="section-subtitle">مثال ۳: آرپژ تصادفی</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">random_arp.orca</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># آرپژ تصادفی در گام C major
+D4......
+..37R...  # رندوم بین 3-7
+..3T0357  # Track با نت‌های C, E, G
+.:04C...</code></pre>
+                    </div>
+
+                    <h3 class="section-subtitle">مثال ۴: Euclidean Rhythm</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">euclidean.orca</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># Euclidean rhythm generator
+C8.....    # Clock base 8
+.U38...    # Euclidean 3 hits in 8 steps
+..:03C.    # Output MIDI note</code></pre>
+                    </div>
+                </section>
+
+                <!-- Section: Advanced -->
+                <section id="advanced" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-rocket"></i>
+                        مرحله ۷: تکنیک‌های پیشرفته
+                    </h2>
+
+                    <h3 class="section-subtitle">استفاده از متغیرها</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">Variables</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># ذخیره و خواندن متغیر
+aV5....  # ذخیره 5 در متغیر a
+.......
+..Va...  # خواندن متغیر a
+...5...  # خروجی: 5
+
+# استفاده در محاسبات
+aV3.bV4
+.......
+.VaVb..
+..3A...  # 3 + 4 = 7
+....7..</code></pre>
+                    </div>
+
+                    <h3 class="section-subtitle">پروژکتورها</h3>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">Projectors</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code># خواندن از موقعیت دیگر
+22O....  # خواندن از offset 2,2
+.......
+..C....  # این کاراکتر خوانده می‌شود
+
+# نوشتن در موقعیت دیگر  
+22XE...  # نوشتن E در offset 2,2
+.......
+....E..  # E در اینجا ظاهر می‌شود</code></pre>
+                    </div>
+
+                    <h3 class="section-subtitle">ساخت Sequencer پیچیده</h3>
+                    <p> 16-step sequencer با pattern قابل تغییر</p>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <span class="code-title">Complex Sequencer</span>
+                            <div class="code-actions">
+                                <button class="code-btn" onclick="copyCode(this)">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </div>
+                        </div>
+                        <pre><code>
+gC........
+.Bg.......
+..Vp......
+...8Kpattern
+..........
+pattern...
+.01234567.
+.........
+D8........
+..8Tp.....
+...:03C...</code></pre>
+                    </div>
+
+                    <h3 class="section-subtitle">Golf Tricks</h3>
+                    <div class="card">
+                        <h4 class="card-title">ترفندهای کوتاه‌نویسی</h4>
+                        <div class="code-container standalone">
+                            <pre><code># Modulo بدون عملگر modulo
+6I4.  # خروجی: 2 (6 % 4)
+
+# تبدیل به Uppercase
+.dAZ  # d + 'A' - 'Z' = D
+
+# تبدیل به Lowercase  
+CM1.  # C * 1 = c
+
+# بررسی Not Null
+.L0.
+..F0  # Bang اگر L != 0</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Resources -->
+                <section id="resources" class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-book"></i>
+                        منابع و لینک‌های مفید
+                    </h2>
+
+                    <div class="card">
+                        <h4 class="card-title">منابع رسمی</h4>
+                        <ul class="feature-list">
+                            <li>
+                                <i class="fas fa-github"></i>
+                                <div>
+                                    <a href="https://github.com/hundredrabbits/Orca" target="_blank">
+                                        GitHub Repository
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">سورس کد و مستندات کامل</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-globe"></i>
+                                <div>
+                                    <a href="https://100r.co/site/orca.html" target="_blank">
+                                        Official Documentation
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">مستندات رسمی Hundredrabbits</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fab fa-discord"></i>
+                                <div>
+                                    <a href="https://discord.gg/KUSBH9h" target="_blank">
+                                        Discord Community
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">جامعه فعال کاربران</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-comments"></i>
+                                <div>
+                                    <a href="https://llllllll.co/t/orca-livecoding-tool/17689" target="_blank">
+                                        Lines Forum
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">بحث و گفتگو درباره Orca</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4 class="card-title">ویدیوهای آموزشی</h4>
+                        <ul class="feature-list">
+                            <li>
+                                <i class="fab fa-youtube"></i>
+                                <div>
+                                    <a href="https://www.youtube.com/watch?v=ktcWOLeWP-g" target="_blank">
+                                        EZBOT - In Depth Tutorial
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">آموزش جامع برای مبتدیان</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fab fa-youtube"></i>
+                                <div>
+                                    <a href="https://www.youtube.com/watch?v=RaI_TuISSJE" target="_blank">
+                                        Devine Lu Linvega - Creator's Tutorial
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">آموزش توسط سازنده Orca</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fab fa-youtube"></i>
+                                <div>
+                                    <a href="https://www.youtube.com/playlist?list=PLLdJW8PZNmgKMPQNbAqgZ5I5MUaJ_1K5Q" target="_blank">
+                                        Orca Playlist
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">مجموعه ویدیوهای آموزشی</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4 class="card-title">ابزارهای مرتبط</h4>
+                        <ul class="feature-list">
+                            <li>
+                                <i class="fas fa-tools"></i>
+                                <div>
+                                    <a href="https://www.tobias-erichsen.de/software.html" target="_blank">
+                                        LoopMIDI
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">Virtual MIDI Driver برای Windows</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-tools"></i>
+                                <div>
+                                    <a href="https://github.com/hundredrabbits/Pilot" target="_blank">
+                                        Pilot
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">UDP Synthesizer برای Orca</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-tools"></i>
+                                <div>
+                                    <a href="https://vcvrack.com/" target="_blank">
+                                        VCV Rack
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">Virtual Modular Synthesizer</span>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fas fa-tools"></i>
+                                <div>
+                                    <a href="https://supercollider.github.io/" target="_blank">
+                                        SuperCollider
+                                    </a><br>
+                                    <span style="color: var(--text-dim);">Audio Synthesis Platform</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Tips Section -->
+                <section class="section">
+                    <h2 class="section-title">
+                        <i class="fas fa-lightbulb"></i>
+                        نکات و ترفندها
+                    </h2>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>نکته ۱:</strong> از <code>Ctrl+F</code> برای جستجو و جایگزینی در کد استفاده کنید.
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>نکته ۲:</strong> می‌توانید با drag & drop فایل‌های <code>.orca</code> را در برنامه باز کنید.
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>نکته ۳:</strong> از <code>Ctrl+I</code> برای insert mode استفاده کنید تا بتوانید بدون جایگزینی تایپ کنید.
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>نکته ۴:</strong> BPM را با دستور <code>BPM:120</code> در کنسول تغییر دهید.
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <strong>نکته ۵:</strong> از <code>#</code> برای کامنت گذاری استفاده کنید. همه چیز بعد از <code>#</code> نادیده گرفته می‌شود.
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Floating Web App Version Button -->
+    <div class="floating-btn">
+        <a href="./Orca/" target="_blank" class="btn btn-webapp">
+            <span class="icon-group">
+                <i class="fas fa-globe icon-main"></i>               
+            </span>
+            Orca WebApp<i class="fas fa-code icon-secondary"></i>
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>درباره Orca</h3>
+                <p style="color: var(--text-dim); line-height: 1.8;">
+                    Orca یک زبان برنامه‌نویسی esoteric دوبعدی است که توسط Hundredrabbits برای لایوکدینگ موسیقی الکترونیک طراحی شده است.
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>لینک‌های سریع</h3>
+                <ul>
+                    <li><a href="#loopmidi">نصب LoopMIDI</a></li>
+                    <li><a href="#install-orca">نصب Orca</a></li>
+                    <li><a href="#operators">عملگرها</a></li>
+                    <li><a href="#examples">مثال‌ها</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>منابع</h3>
+                <ul>
+                    <li><a href="https://github.com/hundredrabbits/Orca" target="_blank">GitHub</a></li>
+                    <li><a href="https://100r.co/site/orca.html" target="_blank">Documentation</a></li>
+                    <li><a href="https://discord.gg/KUSBH9h" target="_blank">Discord</a></li>
+                    <li><a href="https://llllllll.co/t/orca-livecoding-tool/17689" target="_blank">Forum</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>ابزارهای مرتبط</h3>
+                <ul>
+                    <li><a href="https://www.tobias-erichsen.de/software.html" target="_blank">LoopMIDI</a></li>
+                    <li><a href="https://github.com/hundredrabbits/Pilot" target="_blank">Pilot</a></li>
+                    <li><a href="https://vcvrack.com/" target="_blank">VCV Rack</a></li>
+                    <li><a href="https://supercollider.github.io/" target="_blank">SuperCollider</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>ساخته شده با ❤️ برای جامعه لایوکدینگ | آخرین به‌روزرسانی: دسامبر ۲۰۲۴</p>
+        </div>
+    </footer>
+
+    <script>
+        // Matrix Background Script
+        const MatrixBackground = (() => {
+            // Configuration
+            const config = {
+                matrixColor: '#00ffff', // رنگ cyan برای هماهنگی با تم ORCA
+                fontSize: 13,           // اندازه کوچکتر برای پس‌زمینه
+                columnSpacing: 15,      // فاصله کمتر برای تراکم بیشتر
+                animationSpeed: 500 / 30, // تقریباً 60fps
+                fadeSpeed: 0.02,        // سرعت محو شدن کمتر برای دنباله بلندتر
+                glowIntensity: 3,       // شدت glow کمتر
+                characterSet: 'mixed'   // 'mixed', 'binary', 'katakana', 'latin'
+            };
+
+            // Canvas setup
+            const canvas = document.getElementById('matrix-bg');
+            let ctx;
+            try {
+                ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('Canvas context not supported');
+            } catch (e) {
+                console.error('Matrix Background Error: Could not initialize canvas context', e);
+                return { init: () => {}, updateConfig: () => {}, getConfig: () => ({}) };
+            }
+
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            // Character sets
+            const charSets = {
+                mixed: 'アイウエオカキクケ⛧コサシスセソタチツテトナニ⛥ヌネノハヒフヘホマミムメモヤ⸸ユヨラリルレロワψヲンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*',
+                binary: '01',
+                katakana: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン',
+                latin: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            };
+
+            const characters = charSets[config.characterSet] || charSets.mixed;
+            
+            // Calculate columns with spacing
+            const columnWidth = config.fontSize + config.columnSpacing;
+            let columns = Math.floor(width / columnWidth);
+            
+            // Initialize drops
+            const drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -height / config.fontSize;
+            }
+
+            // Trail effect storage
+            const trails = [];
+            for (let i = 0; i < columns; i++) {
+                trails[i] = [];
+            }
+
+            // Draw function
+            function draw() {
+                // Fade effect
+                ctx.fillStyle = `rgba(0, 0, 0, ${config.fadeSpeed})`;
+                ctx.fillRect(0, 0, width, height);
+
+                // Set font
+                ctx.font = `${config.fontSize}px monospace`;
+
+                // Draw characters
+                for (let i = 0; i < drops.length; i++) {
+                    const char = characters[Math.floor(Math.random() * characters.length)];
+                    const x = i * columnWidth;
+                    const y = drops[i] * config.fontSize;
+
+                    // Add to trail
+                    if (trails[i].length > 15) {
+                        trails[i].shift();
+                    }
+                    trails[i].push({ x, y, char });
+
+                    // Draw trail with gradient
+                    trails[i].forEach((point, index) => {
+                        const opacity = (index + 1) / trails[i].length;
+                        if (index === trails[i].length - 1) {
+                            ctx.shadowBlur = config.glowIntensity;
+                            ctx.shadowColor = config.matrixColor;
+                            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                        } else {
+                            ctx.shadowBlur = 0;
+                            const rgb = hexToRgb(config.matrixColor);
+                            ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity * 0.7})`;
+                        }
+                        ctx.fillText(point.char, point.x, point.y);
+                    });
+
+                    // Reset shadow
+                    ctx.shadowBlur = 0;
+
+                    // Move drop
+                    drops[i]++;
+
+                    // Reset when reaching bottom
+                    if (drops[i] * config.fontSize > height && Math.random() > 0.98) {
+                        drops[i] = Math.random() * -height / config.fontSize;
+                        trails[i] = [];
+                    }
+                }
+
+                // Continue animation
+                requestAnimationFrame(draw);
+            }
+
+            // Helper function: Convert hex to RGB
+            function hexToRgb(hex) {
+                const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : { r: 0, g: 255, b: 255 };
+            }
+
+            // Handle window resize
+            function handleResize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                
+                const newColumns = Math.floor(width / columnWidth);
+                if (newColumns > columns) {
+                    for (let i = columns; i < newColumns; i++) {
+                        drops[i] = Math.random() * -height / config.fontSize;
+                        trails[i] = [];
+                    }
+                } else if (newColumns < columns) {
+                    drops.length = newColumns;
+                    trails.length = newColumns;
+                }
+                columns = newColumns;
+            }
+
+            // Public API
+            return {
+                init: function() {
+                    window.addEventListener('resize', handleResize);
+                    requestAnimationFrame(draw);
+                },
+                updateConfig: function(newConfig) {
+                    Object.assign(config, newConfig);
+                },
+                getConfig: function() {
+                    return {...config};
+                }
+            };
+        })();
+
+        // Initialize matrix background after DOM is ready
+        window.addEventListener('load', () => {
+            try {
+                MatrixBackground.init();
+                console.log('Matrix Background initialized successfully');
+            } catch (e) {
+                console.error('Failed to initialize Matrix Background:', e);
+            }
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Copy Code Function
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-container').querySelector('pre code');
+            const text = codeBlock.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHTML = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> کپی شد!';
+                button.style.background = 'var(--accent-green)';
+                button.style.color = 'var(--bg-primary)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 2000);
+            });
+        }
+
+        // Create Orca Grid Demo
+        const gridContainer = document.getElementById('orcaGrid');
+        const gridSize = 10;
+        const operators = ['D', 'C', 'A', 'M', 'R', 'T', ':', '.', '*'];
+        
+        for (let i = 0; i < gridSize * gridSize; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'demo-cell';
+            cell.textContent = '.';
+            
+            cell.addEventListener('click', function() {
+                if (this.textContent === '.') {
+                    this.textContent = operators[Math.floor(Math.random() * operators.length)];
+                    this.classList.add('active');
+                } else {
+                    this.textContent = '.';
+                    this.classList.remove('active');
+                }
+            });
+            
+            gridContainer.appendChild(cell);
+        }
+
+        // Active Section Highlighting
+        const sections = document.querySelectorAll('.section');
+        const tocLinks = document.querySelectorAll('.toc-list a');
+        
+        const observerOptions = {
+            root: null,
+            rootMargin: '-100px 0px',
+            threshold: 0
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    tocLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+        
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+
+        
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add animation on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.section, .card');
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementBottom = element.getBoundingClientRect().bottom;
+                
+                if (elementTop < window.innerHeight && elementBottom > 0) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        };
+        
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll();
+    </script>
+</body>
+</html>
