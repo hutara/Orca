@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - صفحه پیدا نشد | ORCA</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #010f0d;
+            --bg-secondary: #020d0e;
+            --bg-card: #09161a;
+            --accent-cyan: #00ffff;
+            --accent-green: #00ff88;
+            --accent-purple: #f152ff;
+            --accent-pink: #ff0080;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --border: #273d49;
+            --code-bg: #0f2229;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, hsl(305, 91%, 70%) 100%);
+            --gradient-2: linear-gradient(135deg, #00ffff 0%, #00ff88 100%);
+            --gradient-3: linear-gradient(135deg, #ff0080 0%, #ff8c00 100%);
+        }
+
+        body {
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Matrix Canvas */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        /* Overlay for better readability */
+        .matrix-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, 
+                        rgba(0,0,0,0.3) 0%, 
+                        rgba(0,0,0,0.7) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 404 Container */
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .error-title {
+            font-size: clamp(4rem, 10vw, 6rem);
+            font-weight: 900;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.8)); }
+        }
+
+        .error-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+        }
+
+        .error-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-2);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-cyan);
+            border: 2px solid var(--accent-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            transform: translateY(-3px);
+        }
+
+        /* Orca Grid Animation */
+        .error-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            max-width: 300px;
+            margin: 30px auto;
+            font-family: monospace;
+            font-size: 1.2rem;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            transition: all 0.3s ease;
+        }
+
+        .grid-cell.active {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .error-title {
+                font-size: 3rem;
+            }
+
+            .error-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .error-message {
+                font-size: 1rem;
+            }
+
+            .error-grid {
+                max-width: 200px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Background Canvas -->
+    <canvas id="matrix-bg"></canvas>
+    
+    <!-- Overlay -->
+    <div class="matrix-overlay"></div>
+
+    <!-- 404 Content -->
+    <div class="error-container">
+        <h1 class="error-title">404</h1>
+        <h2 class="error-subtitle">صفحه پیدا نشد!</h2>
+        <p class="error-message">
+            به نظر می‌رسد این مسیر در فضای سایبرپانک گم شده است. شاید نت موردنظر شما در یک گام دیگر باشد!
+        </p>
+        
+        <!-- Orca Grid Animation -->
+        <div class="error-grid" id="errorGrid">
+            <!-- Grid cells will be generated by JavaScript -->
+        </div>
+
+        <div class="error-buttons">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home"></i>
+                بازگشت به صفحه اصلی
+            </a>
+            <a href="https://hutara.github.io/Orca/" target="_blank" class="btn btn-secondary">
+                <i class="fas fa-globe"></i>
+                نسخه وب Orca
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Background Script
+        const MatrixBackground = (() => {
+            const config = {
+                matrixColor: '#00ffff',
+                fontSize: 13,
+                columnSpacing: 15,
+                animationSpeed: 500 / 30,
+                fadeSpeed: 0.02,
+                glowIntensity: 3,
+                characterSet: 'mixed'
+            };
+
+            const canvas = document.getElementById('matrix-bg');
+            let ctx;
+            try {
+                ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('Canvas context not supported');
+            } catch (e) {
+                console.error('Matrix Background Error: Could not initialize canvas context', e);
+                return { init: () => {}, updateConfig: () => {}, getConfig: () => ({}) };
+            }
+
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            const charSets = {
+                mixed: 'アイウエオカキクケ⛧コサシスセソタチツテトナニ⛥ヌネノハヒフヘホマミムメモヤ⸸ユヨラリルレロワψヲンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*',
+                binary: '01',
+                katakana: 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン',
+                latin: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            };
+
+            const characters = charSets[config.characterSet] || charSets.mixed;
+            const columnWidth = config.fontSize + config.columnSpacing;
+            let columns = Math.floor(width / columnWidth);
+            const drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.random() * -height / config.fontSize;
+            }
+
+            const trails = [];
+            for (let i = 0; i < columns; i++) {
+                trails[i] = [];
+            }
+
+            function draw() {
+                ctx.fillStyle = `rgba(0, 0, 0, ${config.fadeSpeed})`;
+                ctx.fillRect(0, 0, width, height);
+                ctx.font = `${config.fontSize}px monospace`;
+
+                for (let i = 0; i < drops.length; i++) {
+                    const char = characters[Math.floor(Math.random() * characters.length)];
+                    const x = i * columnWidth;
+                    const y = drops[i] * config.fontSize;
+
+                    if (trails[i].length > 15) {
+                        trails[i].shift();
+                    }
+                    trails[i].push({ x, y, char });
+
+                    trails[i].forEach((point, index) => {
+                        const opacity = (index + 1) / trails[i].length;
+                        if (index === trails[i].length - 1) {
+                            ctx.shadowBlur = config.glowIntensity;
+                            ctx.shadowColor = config.matrixColor;
+                            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                        } else {
+                            ctx.shadowBlur = 0;
+                            const rgb = hexToRgb(config.matrixColor);
+                            ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity * 0.7})`;
+                        }
+                        ctx.fillText(point.char, point.x, point.y);
+                    });
+
+                    ctx.shadowBlur = 0;
+                    drops[i]++;
+                    if (drops[i] * config.fontSize > height && Math.random() > 0.98) {
+                        drops[i] = Math.random() * -height / config.fontSize;
+                        trails[i] = [];
+                    }
+                }
+
+                requestAnimationFrame(draw);
+            }
+
+            function hexToRgb(hex) {
+                const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : { r: 0, g: 255, b: 255 };
+            }
+
+            function handleResize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                const newColumns = Math.floor(width / columnWidth);
+                if (newColumns > columns) {
+                    for (let i = columns; i < newColumns; i++) {
+                        drops[i] = Math.random() * -height / config.fontSize;
+                        trails[i] = [];
+                    }
+                } else if (newColumns < columns) {
+                    drops.length = newColumns;
+                    trails.length = newColumns;
+                }
+                columns = newColumns;
+            }
+
+            return {
+                init: function() {
+                    window.addEventListener('resize', handleResize);
+                    requestAnimationFrame(draw);
+                },
+                updateConfig: function(newConfig) {
+                    Object.assign(config, newConfig);
+                },
+                getConfig: function() {
+                    return {...config};
+                }
+            };
+        })();
+
+        // Initialize Matrix Background
+        window.addEventListener('load', () => {
+            try {
+                MatrixBackground.init();
+                console.log('Matrix Background initialized successfully');
+            } catch (e) {
+                console.error('Failed to initialize Matrix Background:', e);
+            }
+        });
+
+        // Create Orca Grid Animation
+        const gridContainer = document.getElementById('errorGrid');
+        const gridSize = 10;
+        const operators = ['D', 'C', 'A', 'M', 'R', 'T', ':', '.', '*'];
+
+        for (let i = 0; i < gridSize * gridSize; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.textContent = '.';
+            gridContainer.appendChild(cell);
+        }
+
+        // Randomly activate grid cells
+        function animateGrid() {
+            const cells = document.querySelectorAll('.grid-cell');
+            cells.forEach(cell => {
+                if (Math.random() > 0.9) {
+                    cell.textContent = operators[Math.floor(Math.random() * operators.length)];
+                    cell.classList.add('active');
+                    setTimeout(() => {
+                        cell.textContent = '.';
+                        cell.classList.remove('active');
+                    }, 500);
+                }
+            });
+        }
+
+        setInterval(animateGrid, 1000);
+
+        // Smooth Scrolling for Buttons
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
