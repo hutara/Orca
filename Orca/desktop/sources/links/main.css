@@ -64,5 +64,6 @@ canvas.ready {
 /* Theme */
 
 body {
-  background-color: whitesmoke !important;
+  font-size: large;
+  background-color: rgb(137, 199, 194) !important; 
 }
