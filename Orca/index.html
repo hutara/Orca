@@ -23,9 +23,15 @@
     <script type="text/javascript" src="desktop/sources/scripts/commander.js"></script>
     <script type="text/javascript" src="desktop/sources/scripts/cursor.js"></script>
     <script type="text/javascript" src="desktop/sources/scripts/client.js"></script>
-    <title>Orca</title>
+    <title>Hutar Orca</title>
   </head>
   <body>
+    <!-- FIX: Fake menu bar element - hidden by default, shown on load -->
+    <nav id="fake-orca-menu" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 9999; font-size: 11px; line-height: 20px; padding: 0 10px; color: var(--text-primary); ">
+      <span style="color: var(--accent-secondary);">Hutara Ocra</span>
+      <div id="menu-items" style="display: inline-flex; margin-left: 20px;"></div>
+    </nav>
+
     <script>
       'use strict'
 
@@ -36,11 +42,77 @@
       window.addEventListener('load', () => {
         client.start()
         window.orcaClient = client;
+
+        // FIX: Inject fake menu for web (if not Electron)
+        if (typeof require === 'function' && require.toString().includes('console.warn')) {  // Detect web shim
+          console.log('Web mode: Injecting fake menu...');
+          injectFakeMenu(client);
+        } else {
+          // Electron mode: Use original
+          if (client.acels) client.acels.inject('Orca');
+        }
+
+        // Register PWA Service Worker
+        if (location.protocol.substr(0,4) !== ('file') && 'serviceWorker' in navigator) {
+          try { navigator.serviceWorker.register('sw.js') } catch (err) { console.warn(err) }
+        }
       })
 
-      // Register PWA Service Worker
-      if (location.protocol.substr(0,4) !== ('file') && 'serviceWorker' in navigator) {
-        try { navigator.serviceWorker.register('sw.js') } catch (err) { console.warn(err) }
+      // FIX: Function to build dynamic fake menu from acels
+      function injectFakeMenu(client) {
+        const acels = client.acels;
+        if (!acels || !acels.sort) {
+          console.warn('Acels not ready for menu injection.');
+          return;
+        }
+
+        const sorted = acels.sort();
+        const itemsDiv = document.getElementById('menu-items');
+        if (!client.acels || !client.acels.sort || Object.keys(client.acels.sort()).length === 0) {
+          console.error('Acels not loaded or empty. Delaying menu...');
+          setTimeout(() => injectFakeMenu(client), 500); // Retry after 500ms
+          return;
+        }
+        Object.keys(sorted).forEach(cat => {
+          const menuBtn = document.createElement('div');
+          menuBtn.style = 'margin: 0 10px; cursor: pointer; border-bottom: 1px solid transparent; padding: 2px 5px; transition: var(--transition);';
+          menuBtn.textContent = cat;
+          menuBtn.title = cat;  // Tooltip for category
+
+          // Submenu dropdown on click (simple list)
+          menuBtn.onclick = (e) => {
+            e.stopPropagation();
+            const submenu = document.getElementById('submenu-' + cat.replace(/\s+/g, '-'));
+            if (submenu) {
+              submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+            } else {
+              const sub = document.createElement('div');
+              sub.id = 'submenu-' + cat.replace(/\s+/g, '-');
+              sub.style = 'position: absolute; background: var(--surface); border: 1px solid var(--border); padding: 5px; margin-top: 20px; z-index: 10000; display: block;';
+              sorted[cat].forEach(item => {
+                if (item.accelerator) {
+                  const subItem = document.createElement('div');
+                  subItem.textContent = `${item.name} (${item.accelerator})`;
+                  subItem.style = 'padding: 2px; cursor: pointer; font-size: 10px;';
+                  subItem.onclick = () => {
+                    if (item.downfn) item.downfn();
+                    sub.style.display = 'none';
+                  };
+                  sub.appendChild(subItem);
+                }
+              });
+              menuBtn.parentNode.appendChild(sub);
+            }
+          };
+
+          // Hide on outside click
+          document.onclick = (e) => { if (!menuBtn.contains(e.target)) document.querySelectorAll('[id^="submenu-"]').forEach(s => s.style.display = 'none'); };
+
+          itemsDiv.appendChild(menuBtn);
+        });
+
+        document.getElementById('fake-orca-menu').style.display = 'flex';
+        document.body.style.paddingTop = '30px';  // Offset for menu
       }
     </script>
     <noscript>Your browser must have Javascript enabled to use Orca, <br />try running the <a href='https://git.sr.ht/~rabbits/orca'>terminal version</a> instead.</noscript>
