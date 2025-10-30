@@ -173,3 +173,83 @@ function Commander (client) {
 
   function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }
+
+// ———— Mobile Keyboard Fix ————
+
+let mobileEditInput = null;
+let isMobile = 'ontouchstart' in window;
+let currentEditCell = null;
+
+// ایجاد input پنهان برای trigger کیبورد
+function createMobileInput() {
+  if (mobileEditInput) return;
+
+  mobileEditInput = document.createElement('input');
+  mobileEditInput.type = 'text';
+  mobileEditInput.maxLength = 1;
+  mobileEditInput.autocapitalize = 'none';
+  mobileEditInput.autocomplete = 'off';
+  mobileEditInput.style.cssText = `
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    opacity: 0;
+    pointer-events: none;
+    font-family: monospace;
+    font-size: 16px;
+    z-index: -1;
+  `;
+
+  // وقتی کاربر تایپ کرد
+  mobileEditInput.addEventListener('input', (e) => {
+    const char = e.target.value.trim();
+    if (char && currentEditCell) {
+      // اعمال کاراکتر به سلول در Orca
+      orca.write(currentEditCell.x, currentEditCell.y, char);
+      client.redraw(); // یا client.update() — بر اساس کد شما
+      exitMobileEdit(); // کیبورد بسته شود
+    }
+  });
+
+  // Enter یا Escape: خروج از ویرایش
+  mobileEditInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      exitMobileEdit();
+      e.preventDefault();
+    }
+  });
+
+  document.body.appendChild(mobileEditInput);
+}
+
+// ورود به حالت ویرایش موبایل
+function enterMobileEdit(x, y) {
+  currentEditCell = { x, y };
+  createMobileInput();
+
+  // تأخیر کوتاه برای اطمینان از رندر شدن
+  setTimeout(() => {
+    mobileEditInput.value = '';
+    mobileEditInput.focus(); // این خط کیبورد را نمایش می‌دهد
+  }, 50);
+}
+
+// خروج از ویرایش
+function exitMobileEdit() {
+  if (mobileEditInput) {
+    mobileEditInput.blur();
+    mobileEditInput.value = '';
+  }
+  currentEditCell = null;
+}
+
+// ———— تغییر در eventهای موجود ————
+// وقتی سلول انتخاب شد (از cursor.js یا هر جا که select می‌شود)
+const originalSelect = commander.select; // اگر تابعی به نام select وجود دارد
+commander.select = function(x, y) {
+  if (originalSelect) originalSelect.call(this, x, y);
+
+  if (isMobile) {
+    enterMobileEdit(x, y);
+  }
+};

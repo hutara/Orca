@@ -57,6 +57,18 @@ function Cursor (client) {
     this.select(this.x, this.y, this.w + parseInt(w), this.h - parseInt(h))
   }
 
+  this.down = function (e) {
+    if (this.isMobile) {
+      // Mobile handling is done by mobile-helper.js
+      return
+    }
+    
+    // Original desktop code
+    this.pos = this.client.posAt(e.clientX, e.clientY)
+    this.update()
+    this.client.update()
+  }
+
   this.scaleTo = (w, h) => {
     this.select(this.x, this.y, w, h)
   }
@@ -224,5 +236,27 @@ function Cursor (client) {
     e.preventDefault()
   }
 
+  
+
   function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }
+canvas.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  if (e.touches.length !== 1) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  const clientX = touch.clientX - rect.left;
+  const clientY = touch.clientY - rect.top;
+
+  const x = Math.floor(clientX * scaleX / orca.cellWidth);
+  const y = Math.floor(clientY * scaleY / orca.cellHeight);
+
+  if (x >= 0 && x < orca.w && y >= 0 && y < orca.h) {
+    // این خط مهم است: commander.select را صدا بزن
+    commander.select(x, y);
+  }
+}, { passive: false });

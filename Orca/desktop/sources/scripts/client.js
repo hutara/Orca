@@ -123,6 +123,7 @@ function Client () {
 
     this.acels.install(window)
     this.acels.pipe(this.commander)
+    
   }
 
   this.start = () => {
@@ -141,6 +142,28 @@ function Client () {
     this.el.className = 'ready'
 
     this.toggleGuide()
+
+    // Mobile compatibility - Safe version
+    this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    if (this.isMobile) {
+      console.log('Mobile device detected')
+      
+      // Prevent double-tap zoom
+      let lastTouchEnd = 0
+      document.addEventListener('touchend', function (e) {
+        const now = (new Date()).getTime()
+        if (now - lastTouchEnd <= 300) {
+          e.preventDefault()
+        }
+        lastTouchEnd = now
+      }, false)
+      
+      // Prevent context menu on long press
+      this.el.addEventListener('contextmenu', function(e) {
+        e.preventDefault()
+        return false
+      }, false)
+    }    
   }
 
   this.reset = () => {
@@ -467,3 +490,4 @@ function Client () {
   function display (str, f, max) { return str.length < max ? str : str.slice(f % str.length) + str.substr(0, f % str.length) }
   function clamp (v, min, max) { return v < min ? min : v > max ? max : v }
 }
+
