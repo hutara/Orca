@@ -3,22 +3,22 @@
 /* global localStorage */
 /* global FileReader */
 /* global DOMParser */
-
+this.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 function Theme (client) {
   this.el = document.createElement('style')
   this.el.type = 'text/css'
 
   this.active = {}
   this.default = {
-    background: '#eeeeee',
+    background: '#c7ffffff',
     f_high: '#0a0a0a',
-    f_med: '#4a4a4a',
-    f_low: '#6a6a6a',
-    f_inv: '#111111',
-    b_high: '#a1a1a1',
-    b_med: '#c1c1c1',
-    b_low: '#ffffff',
-    b_inv: '#ffb545'
+    f_med: '#4a5557ff',
+    f_low: '#515f66ff',
+    f_inv: '#025277ff',
+    b_high: '#63c1ceff',
+    b_med: '#00e4c5ff',
+    b_low: '#00f5d4ff',
+    b_inv: '#00d9ffff'
   }
 
   // Callbacks
