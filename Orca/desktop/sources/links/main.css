@@ -78,3 +78,106 @@ body {
   background-color: rgb(137, 199, 194) !important;
   
 }
+
+/* ========================================
+   Mobile Optimizations
+   ======================================== */
+
+
+
+/* Mobile Keyboard Styles */
+#mobile-keyboard {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #000;
+  border-top: 2px solid #333;
+  z-index: 10000;
+  padding: 10px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+#mobile-keyboard.visible {
+  display: block !important;
+}
+
+#mobile-keyboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #333;
+}
+
+#kb-close {
+  background: #f00;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  font-family: monospace;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#kb-position {
+  color: #888;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+#mobile-keyboard-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  gap: 5px;
+}
+
+.mobile-key {
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 12px 8px;
+  font-family: monospace;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.1s;
+}
+
+.mobile-key:active {
+  background: #555;
+  transform: scale(0.95);
+}
+
+.mobile-key.special {
+  background: #333;
+  grid-column: span 2;
+}
+
+.mobile-key.operator {
+  background: #1a4d2e;
+  color: #4ade80;
+  font-weight: bold;
+}
+
+/* Landscape mode */
+@media (max-width: 768px) and (orientation: landscape) {
+
+  
+  #mobile-keyboard {
+    max-height: 40vh;
+  }
+  
+  #mobile-keyboard-buttons {
+    grid-template-columns: repeat(auto-fill, minmax(35px, 1fr));
+  }
+  
+  .mobile-key {
+    padding: 8px 5px;
+    font-size: 14px;
+  }
+}
