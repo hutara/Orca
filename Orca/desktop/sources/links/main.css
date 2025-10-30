@@ -56,6 +56,16 @@ canvas {
   image-rendering: pixelated;
   image-rendering: optimizeSpeed;
 }
+canvas {
+  touch-action: none; /* جلوگیری از scroll هنگام لمس */
+  max-width: 100%;
+  height: auto;
+}
+@media (max-width: 768px) {
+  body { font-size: 12px; } /* کوچک‌تر کردن فونت برای صفحه کوچک */
+  canvas { width: 100vw; height: 100vh; }
+}
+
 
 canvas.ready {
   opacity: 1;
@@ -65,5 +75,6 @@ canvas.ready {
 
 body {
   font-size: large;
-  background-color: rgb(137, 199, 194) !important; 
+  background-color: rgb(137, 199, 194) !important;
+  
 }
